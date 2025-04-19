@@ -1,0 +1,99 @@
+-- Made by WalkAway538 & ChatGPT - Rayfield UI Version
+
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local toggles = {}
+
+local Window = Rayfield:CreateWindow({
+	Name = "WalkAway538 - Script Hub",
+	LoadingTitle = "Loading Script...",
+	LoadingSubtitle = "by ChatGPT & WalkAway538",
+	ConfigurationSaving = {
+		Enabled = false
+	},
+	KeySystem = false,
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+-- === Fly Toggle ===
+MainTab:CreateToggle({
+	Name = "Fly",
+	CurrentValue = false,
+	Flag = "FlyToggle",
+	Callback = function(enabled)
+		local hrp = character:WaitForChild("HumanoidRootPart")
+		if enabled then
+			local bv = Instance.new("BodyVelocity")
+			bv.Name = "FlyVelocity"
+			bv.Velocity = Vector3.new(0, 50, 0)
+			bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+			bv.Parent = hrp
+		else
+			local old = hrp:FindFirstChild("FlyVelocity")
+			if old then old:Destroy() end
+		end
+	end,
+})
+
+-- === Speed Hack Toggle ===
+MainTab:CreateToggle({
+	Name = "Speed Hack",
+	CurrentValue = false,
+	Flag = "SpeedToggle",
+	Callback = function(enabled)
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid.WalkSpeed = enabled and 100 or 16
+	end,
+})
+
+-- === Auto Farm Toggle ===
+MainTab:CreateToggle({
+	Name = "Auto Farm (Simulasi)",
+	CurrentValue = false,
+	Flag = "FarmToggle",
+	Callback = function(enabled)
+		if enabled then
+			toggles.autoFarm = true
+			coroutine.wrap(function()
+				while toggles.autoFarm do
+					print("Mengumpulkan item (simulasi)...")
+					wait(1)
+				end
+			end)()
+		else
+			toggles.autoFarm = false
+		end
+	end,
+})
+
+-- === Fling Toggle ===
+MainTab:CreateToggle({
+	Name = "Fling",
+	CurrentValue = false,
+	Flag = "FlingToggle",
+	Callback = function(enabled)
+		local hrp = character:WaitForChild("HumanoidRootPart")
+		if enabled then
+			local bav = Instance.new("BodyAngularVelocity")
+			bav.Name = "FlingSpin"
+			bav.AngularVelocity = Vector3.new(0, 9999, 0)
+			bav.MaxTorque = Vector3.new(0, math.huge, 0)
+			bav.P = 10000
+			bav.Parent = hrp
+		else
+			local old = hrp:FindFirstChild("FlingSpin")
+			if old then old:Destroy() end
+		end
+	end,
+})
+
+-- === Destroy UI Button ===
+MainTab:CreateButton({
+	Name = "Destroy UI",
+	Callback = function()
+		Rayfield:Destroy()
+	end,
+})
