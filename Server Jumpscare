@@ -1,0 +1,13 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local JumpscareEvent = ReplicatedStorage:WaitForChild("JumpscareEvent")
+
+-- Fungsi trigger jumpscare ke 1 pemain
+local function triggerJumpscare(player)
+	JumpscareEvent:FireClient(player)
+end
+
+-- Contoh: Trigger ke semua player setelah 5 detik
+wait(5)
+for _, player in ipairs(game.Players:GetPlayers()) do
+	triggerJumpscare(player)
+end
