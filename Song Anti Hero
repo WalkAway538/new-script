@@ -1,0 +1,62 @@
+-- LocalScript (tempatkan di StarterPlayerScripts)
+
+local lirik = {
+    "I'll come for you",
+    "Stay in here",
+    "Give your best",
+    "Waiting for me",
+    "Don't you move",
+    "Steady",
+    "",
+    "I'll come for you",
+    "Standing here",
+    "Brace yourself",
+    "Waiting for me",
+    "Close your eyes",
+    "Steady",
+    "",
+    "Sticking for my name",
+    "And I'll keep you on my heart",
+    "Sticking through",
+    "Overnight",
+    "Everything",
+    "Is nothing more",
+    "",
+    "I'll come for you",
+    "Stay in here",
+    "Give your best",
+    "Waiting for me",
+    "Don't you move",
+    "Steady",
+    "",
+    "Still, find, me, break",
+    "Still, I, for you, here",
+    "Still, me, break",
+    "Still, find, still, I know",
+    "Far, further, still, for you",
+    "",
+    "Sticking for my name",
+    "And I'll keep you on my heart",
+    "Sticking through",
+    "Overnight",
+    "Everything",
+    "Is nothing more",
+    "",
+    "Will he come back to see you?",
+    "Thinking again",
+    "Will he come back to save you?",
+    "Oh no",
+    "",
+    "Take him away",
+    "Come to my life",
+    "I will give you all"
+}
+
+local jeda = 2 -- jeda antar baris dalam detik
+
+for _, baris in ipairs(lirik) do
+    if baris ~= "" then
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(baris, "All")
+    end
+    wait(jeda)
+end
