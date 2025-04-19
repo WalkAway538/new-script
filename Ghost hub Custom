@@ -1,0 +1,97 @@
+-- GhostHub X Custom UI
+-- Dibuka dengan tombol LeftShift
+-- Tanpa sistem key
+
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local gui = Instance.new("ScreenGui", CoreGui)
+local mainFrame = Instance.new("Frame", gui)
+local sideBar = Instance.new("Frame", mainFrame)
+local title = Instance.new("TextLabel", mainFrame)
+local closeBtn = Instance.new("TextButton", mainFrame)
+
+-- UI Settings
+gui.Name = "GhostHubX"
+gui.ResetOnSpawn = false
+mainFrame.Size = UDim2.new(0, 600, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.Visible = false
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+sideBar.Size = UDim2.new(0, 120, 1, 0)
+sideBar.Position = UDim2.new(0, 0, 0, 0)
+sideBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+
+closeBtn.Size = UDim2.new(0, 40, 0, 40)
+closeBtn.Position = UDim2.new(1, -45, 0, 5)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.BackgroundColor3 = Color3.fromRGB(45, 0, 0)
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+end)
+
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "X Ghost Hub X"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+
+-- Sidebar buttons
+local buttons = {"Main", "GhostScript", "Other", "GameHub"}
+local pages = {}
+
+for i, name in ipairs(buttons) do
+    local btn = Instance.new("TextButton", sideBar)
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 45 + 60)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+
+    local page = Instance.new("Frame", mainFrame)
+    page.Size = UDim2.new(1, -120, 1, -40)
+    page.Position = UDim2.new(0, 120, 0, 40)
+    page.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    page.Visible = false
+    pages[name] = page
+
+    btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(pages) do p.Visible = false end
+        page.Visible = true
+    end)
+end
+
+-- GameHub Content
+local gamePage = pages["GameHub"]
+local games = {
+    {"Natural Disaster", "https://pastebin.com/raw/Example1"},
+    {"Tower Of Jump", "https://pastebin.com/raw/Example2"},
+    {"Clone Tycoon 2", "https://pastebin.com/raw/Example3"},
+    {"Build A Boat", "https://pastebin.com/raw/Example4"},
+    {"Color Block Race", "https://pastebin.com/raw/Example5"},
+    {"Math Race", "https://pastebin.com/raw/Example6"},
+}
+
+for i, data in ipairs(games) do
+    local btn = Instance.new("TextButton", gamePage)
+    btn.Size = UDim2.new(0, 160, 0, 40)
+    btn.Position = UDim2.new(0, ((i - 1) % 3) * 170 + 10, 0, math.floor((i - 1) / 3) * 50 + 10)
+    btn.Text = data[1]
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.MouseButton1Click:Connect(function()
+        loadstring(game:HttpGet(data[2]))()
+    end)
+end
+
+-- Toggle GUI
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.LeftShift then
+        mainFrame.Visible = not mainFrame.Visible
+    end
+end)
