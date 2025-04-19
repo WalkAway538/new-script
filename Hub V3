@@ -1,0 +1,171 @@
+-- Custom Hub UI by WalkAway538 & ChatGPT
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- === Loading Screen ===
+local loadingGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+loadingGui.Name = "LoadingUI"
+loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local loadingFrame = Instance.new("Frame", loadingGui)
+loadingFrame.Size = UDim2.new(0, 300, 0, 150)
+loadingFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+loadingFrame.BorderSizePixel = 0
+
+local loadingText = Instance.new("TextLabel", loadingFrame)
+loadingText.Size = UDim2.new(1, 0, 1, 0)
+loadingText.Text = "Loading Custom Hub..."
+loadingText.TextColor3 = Color3.new(1, 1, 1)
+loadingText.Font = Enum.Font.GothamBold
+loadingText.TextScaled = true
+loadingText.BackgroundTransparency = 1
+
+wait(2)
+loadingGui:Destroy()
+
+-- === Main UI ===
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+screenGui.Name = "CustomHubUI"
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 400, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local closeButton = Instance.new("TextButton", mainFrame)
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+local uilist = Instance.new("UIListLayout", mainFrame)
+uilist.Padding = UDim.new(0, 5)
+uilist.FillDirection = Enum.FillDirection.Vertical
+uilist.SortOrder = Enum.SortOrder.LayoutOrder
+uilist.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uilist.VerticalAlignment = Enum.VerticalAlignment.Top
+
+-- === Utility: Toggle Creator ===
+local toggles = {}
+
+local function createToggle(name, callback)
+	local button = Instance.new("TextButton", mainFrame)
+	button.Size = UDim2.new(0.9, 0, 0, 40)
+	button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Font = Enum.Font.SourceSansBold
+	button.TextSize = 18
+	button.Text = name .. ": OFF"
+
+	local state = false
+	button.MouseButton1Click:Connect(function()
+		state = not state
+		button.Text = name .. (state and ": ON" or ": OFF")
+		button.BackgroundColor3 = state and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(60, 60, 60)
+		callback(state)
+	end)
+end
+
+-- === Fitur: Fly Bebas Arah ===
+createToggle("Fly", function(enabled)
+	if enabled then
+		local flying = true
+		local bodyVel = Instance.new("BodyVelocity", player.Character.HumanoidRootPart)
+		bodyVel.Name = "FlyForce"
+		bodyVel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		bodyVel.Velocity = Vector3.zero
+
+		local conn
+		conn = game:GetService("RunService").RenderStepped:Connect(function()
+			if not flying then conn:Disconnect() return end
+			local vel = Vector3.zero
+			if mouse.W then vel = vel + workspace.CurrentCamera.CFrame.LookVector end
+			if mouse.S then vel = vel - workspace.CurrentCamera.CFrame.LookVector end
+			if mouse.A then vel = vel - workspace.CurrentCamera.CFrame.RightVector end
+			if mouse.D then vel = vel + workspace.CurrentCamera.CFrame.RightVector end
+			bodyVel.Velocity = vel.Unit * 80
+		end)
+
+		toggles["Fly"] = function() flying = false; bodyVel:Destroy() end
+	else
+		if toggles["Fly"] then toggles["Fly"]() end
+	end
+end)
+
+-- === Fitur: Speed (input bisa diatur nanti) ===
+createToggle("Speed", function(enabled)
+	local humanoid = player.Character:WaitForChild("Humanoid")
+	if enabled then
+		humanoid.WalkSpeed = 100
+	else
+		humanoid.WalkSpeed = 16
+	end
+end)
+
+-- === Fitur: Anti-Fling ===
+createToggle("Anti-Fling", function(enabled)
+	local hrp = player.Character:WaitForChild("HumanoidRootPart")
+	if enabled then
+		local av = Instance.new("AngularVelocity", hrp)
+		av.AngularVelocity = Vector3.zero
+		av.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+		av.Name = "AntiFling"
+	else
+		local af = hrp:FindFirstChild("AntiFling")
+		if af then af:Destroy() end
+	end
+end)
+
+-- === Fitur: Auto Jump ===
+createToggle("Auto Jump", function(enabled)
+	if enabled then
+		toggles["AutoJump"] = true
+		coroutine.wrap(function()
+			while toggles["AutoJump"] do
+				if player.Character:FindFirstChildOfClass("Humanoid") then
+					player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+				wait(1)
+			end
+		end)()
+	else
+		toggles["AutoJump"] = false
+	end
+end)
+
+-- === Fitur: NoClip / Clip ===
+createToggle("NoClip", function(enabled)
+	if enabled then
+		toggles["NoClip"] = true
+		coroutine.wrap(function()
+			while toggles["NoClip"] do
+				for _, part in ipairs(player.Character:GetDescendants()) do
+					if part:IsA("BasePart") and part.CanCollide then
+						part.CanCollide = false
+					end
+				end
+				wait()
+			end
+		end)()
+	else
+		toggles["NoClip"] = false
+		for _, part in ipairs(player.Character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
+		end
+	end
+end)
