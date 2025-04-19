@@ -15,7 +15,7 @@ loadingScreen:Destroy()
 
 -- Main UI
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "CustomHubV4"
+ScreenGui.Name = "CustomHubV5"
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 500, 0, 400)
@@ -44,14 +44,16 @@ MinimizeButton.TextColor3 = Color3.new(1,1,1)
 MinimizeButton.BackgroundColor3 = Color3.fromRGB(30,30,30)
 MinimizeButton.Parent = MainFrame
 
--- Logo (hidden by default)
+-- Logo (Minimized Form)
 local Logo = Instance.new("ImageButton")
+Logo.Name = "DragonLogo"
 Logo.Size = UDim2.new(0, 100, 0, 100)
 Logo.Position = UDim2.new(0.05, 0, 0.05, 0)
 Logo.Image = "rbxassetid://80983298415431"
 Logo.BackgroundTransparency = 1
 Logo.Visible = false
-Logo.Parent = ScreenGui
+Logo.ZIndex = 10
+Logo.Parent = game.CoreGui
 Logo.Active = true
 Logo.Draggable = true
 
@@ -68,6 +70,7 @@ end)
 
 CloseButton.MouseButton1Click:Connect(function()
 	ScreenGui:Destroy()
+	Logo:Destroy()
 end)
 
 -- Profil Roblox
@@ -152,5 +155,3 @@ game.Players.LocalPlayer.Chatted:Connect(function(msg)
 		end
 	end
 end)
-
--- Tambahkan fitur lainnya jika kamu mau, atau aku bisa bantu lanjutkan semua toggle UI-nya sekarang
