@@ -1,48 +1,40 @@
--- StarterGui > ScreenGui > LocalScript
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- Mobil body
+local carBody = Instance.new("Part")
+carBody.Size = Vector3.new(8, 2.5, 14)
+carBody.Anchored = false
+carBody.CanCollide = true
+carBody.BrickColor = BrickColor.new("Really black")
+carBody.Material = Enum.Material.SmoothPlastic
+carBody.Name = "CarBody"
+carBody.Position = hrp.Position
+carBody.Parent = workspace
 
--- GUI
-local gui = Instance.new("ScreenGui")
-gui.Name = "TrollHub"
-gui.ResetOnSpawn = false
-gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+-- Weld karakter ke mobil
+local weld = Instance.new("WeldConstraint")
+weld.Part0 = hrp
+weld.Part1 = carBody
+weld.Parent = carBody
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 250, 0, 200)
-frame.Position = UDim2.new(0.5, -125, 0.5, -100)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BorderSizePixel = 0
-frame.Parent = gui
-frame.Active = true
-frame.Draggable = true
+-- Tambah roda
+local function createWheel(offset)
+	local wheel = Instance.new("Part")
+	wheel.Shape = Enum.PartType.Cylinder
+	wheel.Size = Vector3.new(2, 2, 2)
+	wheel.Orientation = Vector3.new(0, 0, 90)
+	wheel.Position = carBody.Position + offset
+	wheel.BrickColor = BrickColor.new("Dark stone grey")
+	wheel.Material = Enum.Material.Metal
+	wheel.Anchored = false
+	wheel.CanCollide = true
+	wheel.Parent = workspace
 
-local uilist = Instance.new("UIListLayout", frame)
-uilist.Padding = UDim.new(0, 5)
-uilist.FillDirection = Enum.FillDirection.Vertical
-uilist.SortOrder = Enum.SortOrder.LayoutOrder
-
--- Helper buat bikin tombol
-local function makeButton(text, callback)
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, -10, 0, 40)
-	btn.Text = text
-	btn.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 16
-	btn.Parent = frame
-	btn.MouseButton1Click:Connect(callback)
+	local weldWheel = Instance.new("WeldConstraint")
+	weldWheel.Part0 = carBody
+	weldWheel.Part1 = wheel
+	weldWheel.Parent = wheel
 end
 
--- Tombol-Tombol
-makeButton("UFO Abduct", function()
-	ReplicatedStorage:WaitForChild("UFOEvent"):FireServer()
-end)
-
-makeButton("Play Random Sound", function()
-	ReplicatedStorage:WaitForChild("SoundPrankEvent"):FireServer()
-end)
-
-makeButton("Walk on Air", function()
-	ReplicatedStorage:WaitForChild("AirWalkEvent"):FireServer()
-end)
+createWheel(Vector3.new(3, -1.25, 5))
+createWheel(Vector3.new(-3, -1.25, 5))
+createWheel(Vector3.new(3, -1.25, -5))
+createWheel(Vector3.new(-3, -1.25, -5))
