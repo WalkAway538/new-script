@@ -1,0 +1,99 @@
+-- Made by WalkAway538 & ChatGPT - Roblox Toggle UI Script
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- === UI Setup ===
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "ToggleUI"
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 250, 0, 350)
+frame.Position = UDim2.new(0, 20, 0.5, -175)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+
+local uilist = Instance.new("UIListLayout", frame)
+uilist.Padding = UDim.new(0, 10)
+uilist.FillDirection = Enum.FillDirection.Vertical
+uilist.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uilist.VerticalAlignment = Enum.VerticalAlignment.Top
+uilist.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- === Util: Bikin Toggle Button ===
+local toggles = {}
+
+local function makeToggle(label, onToggle)
+	local state = false
+
+	local button = Instance.new("TextButton", frame)
+	button.Size = UDim2.new(1, -20, 0, 40)
+	button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Font = Enum.Font.SourceSansBold
+	button.TextSize = 18
+	button.Text = label .. ": OFF"
+
+	button.MouseButton1Click:Connect(function()
+		state = not state
+		button.Text = label .. (state and ": ON" or ": OFF")
+		button.BackgroundColor3 = state and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(60, 60, 60)
+		onToggle(state)
+	end)
+
+	return button
+end
+
+-- === Toggle: Fly ===
+makeToggle("Fly", function(enabled)
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	if enabled then
+		local bv = Instance.new("BodyVelocity")
+		bv.Name = "FlyVelocity"
+		bv.Velocity = Vector3.new(0, 50, 0)
+		bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		bv.Parent = hrp
+	else
+		local old = hrp:FindFirstChild("FlyVelocity")
+		if old then old:Destroy() end
+	end
+end)
+
+-- === Toggle: Speed Hack ===
+makeToggle("Speed Hack", function(enabled)
+	local humanoid = character:WaitForChild("Humanoid")
+	humanoid.WalkSpeed = enabled and 100 or 16
+end)
+
+-- === Toggle: Auto Farm ===
+makeToggle("Auto Farm", function(enabled)
+	if enabled then
+		toggles.autoFarm = true
+		coroutine.wrap(function()
+			while toggles.autoFarm do
+				print("Mengumpulkan item (simulasi)...")
+				wait(1)
+			end
+		end)()
+	else
+		toggles.autoFarm = false
+	end
+end)
+
+-- === Toggle: Fling ===
+makeToggle("Fling", function(enabled)
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	if enabled then
+		local bav = Instance.new("BodyAngularVelocity")
+		bav.Name = "FlingSpin"
+		bav.AngularVelocity = Vector3.new(0, 9999, 0)
+		bav.MaxTorque = Vector3.new(0, math.huge, 0)
+		bav.P = 10000
+		bav.Parent = hrp
+	else
+		local old = hrp:FindFirstChild("FlingSpin")
+		if old then old:Destroy() end
+	end
+end)
