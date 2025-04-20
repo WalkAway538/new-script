@@ -1,0 +1,65 @@
+--// Auto Rob Jailbreak Custom UI (Tanpa Kavo) //
+
+-- Buat UI custom local ScreenGui = Instance.new("ScreenGui", game.CoreGui) ScreenGui.Name = "AutoRobUI"
+
+local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 400, 0, 350) MainFrame.Position = UDim2.new(0.5, -200, 0.5, -175) MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner", MainFrame) UICorner.CornerRadius = UDim.new(0, 8)
+
+local Title = Instance.new("TextLabel", MainFrame) Title.Text = "Auto Rob - Jailbreak" Title.Size = UDim2.new(1, 0, 0, 30) Title.BackgroundTransparency = 1 Title.TextColor3 = Color3.new(1, 1, 1) Title.Font = Enum.Font.GothamBold Title.TextSize = 18
+
+local Close = Instance.new("TextButton", MainFrame) Close.Size = UDim2.new(0, 30, 0, 30) Close.Position = UDim2.new(1, -30, 0, 0) Close.Text = "X" Close.BackgroundColor3 = Color3.fromRGB(180, 50, 50) Close.TextColor3 = Color3.new(1,1,1) Close.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+local MinBtn = Instance.new("TextButton", MainFrame) MinBtn.Size = UDim2.new(0, 30, 0, 30) MinBtn.Position = UDim2.new(1, -60, 0, 0) MinBtn.Text = "-" MinBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80) MinBtn.TextColor3 = Color3.new(1,1,1) MinBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false CreateMinimizedUI() end)
+
+local AutoRobEnabled = false local RobTargets = { Bank = true, Jewelry = true, Museum = true, CargoTrain = true, GasStation = true, DonutShop = true, OilFactory = true }
+
+local TotalMoney = 0
+
+function CreateMinimizedUI() local SmallGui = Instance.new("ScreenGui", game.CoreGui) SmallGui.Name = "MinimizedAutoRob"
+
+local Frame = Instance.new("Frame", SmallGui)
+Frame.Size = UDim2.new(0, 120, 0, 40)
+Frame.Position = UDim2.new(0.5, -60, 0, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.BorderSizePixel = 0
+Frame.AnchorPoint = Vector2.new(0.5, 0)
+Frame.Active = true
+Frame.Draggable = true
+
+local TextButton = Instance.new("TextButton", Frame)
+TextButton.Size = UDim2.new(1, 0, 1, 0)
+TextButton.Text = "Open Auto Rob"
+TextButton.BackgroundTransparency = 1
+TextButton.TextColor3 = Color3.new(1,1,1)
+TextButton.MouseButton1Click:Connect(function()
+    SmallGui:Destroy()
+    MainFrame.Visible = true
+end)
+
+end
+
+-- Start/Stop Auto Rob function AutoRob() spawn(function() while AutoRobEnabled do local availableRob = CheckRobbery() if availableRob and RobTargets[availableRob] then print("Merampok: " .. availableRob) TeleportTo(availableRob) TriggerRobbery(availableRob) wait(10) TotalMoney += math.random(3000,7000) print("Uang: $" .. TotalMoney) else print("Tidak ada lokasi aktif") end wait(3) end end) end
+
+function CheckRobbery() local function isOpen(obj) return obj and obj:IsA("BasePart") and obj.Transparency > 0.5 end if isOpen(workspace:FindFirstChild("Banks") and workspace.Banks:FindFirstChild("Door")) then return "Bank" elseif isOpen(workspace:FindFirstChild("Jewelrys") and workspace.Jewelrys:FindFirstChild("Door")) then return "Jewelry" elseif isOpen(workspace:FindFirstChild("GasStation") and workspace.GasStation:FindFirstChild("Door")) then return "GasStation" elseif isOpen(workspace:FindFirstChild("DonutShop") and workspace.DonutShop:FindFirstChild("Door")) then return "DonutShop" elseif isOpen(workspace:FindFirstChild("OilFactory") and workspace.OilFactory:FindFirstChild("Door")) then return "OilFactory" end return nil end
+
+function TeleportTo(tempat) local char = game.Players.LocalPlayer.Character if not char then return end local pos = { Bank = Vector3.new(10, 10, 10), Jewelry = Vector3.new(20, 10, 10), Museum = Vector3.new(30, 10, 10), CargoTrain = Vector3.new(40, 10, 10), GasStation = Vector3.new(50, 10, 10), DonutShop = Vector3.new(60, 10, 10), OilFactory = Vector3.new(70, 10, 10), } if pos[tempat] then char:MoveTo(pos[tempat]) end end
+
+function TriggerRobbery(tempat) local remote = game.ReplicatedStorage:FindFirstChild("RobberyRemote") if remote and remote:IsA("RemoteEvent") then remote:FireServer(tempat) end end
+
+-- Tambah tombol local function AddButton(text, pos, callback) local btn = Instance.new("TextButton", MainFrame) btn.Size = UDim2.new(0, 360, 0, 30) btn.Position = UDim2.new(0, 20, 0, pos) btn.BackgroundColor3 = Color3.fromRGB(40,40,40) btn.TextColor3 = Color3.new(1,1,1) btn.Font = Enum.Font.Gotham btn.TextSize = 14 btn.Text = text btn.MouseButton1Click:Connect(callback) end
+
+AddButton("Start Auto Rob", 40, function() AutoRobEnabled = true AutoRob() end)
+
+AddButton("Stop Auto Rob", 80, function() AutoRobEnabled = false end)
+
+AddButton("Speed Hack (300)", 120, function() game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 300 end)
+
+AddButton("High Jump (300)", 160, function() game.Players.LocalPlayer.Character.Humanoid.JumpPower = 300 end)
+
+AddButton("No Clip", 200, function() local Noclip = true local Stepped = game:GetService("RunService").Stepped:Connect(function() if not Noclip then return end for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end) game:GetService("UserInputService").InputBegan:Connect(function(input) if input.KeyCode == Enum.KeyCode.N then Noclip = not Noclip print("NoClip: ", Noclip) end end) end)
+
+AddButton("Anti Arrest", 240, function() local plr = game.Players.LocalPlayer local arrestModule = plr.Character:FindFirstChild("handcuffed") if arrestModule then arrestModule:Destroy() end plr.Character.ChildAdded:Connect(function(child) if child.Name == "handcuffed" then child:Destroy() end end) end)
+
+AddButton("Reset Speed/Jump", 280, function() local h = game.Players.LocalPlayer.Character.Humanoid h.WalkSpeed = 16 h.JumpPower = 50 end)
+
