@@ -1,252 +1,71 @@
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local running = false
-local TotalMoney = 0
+--// Auto Rob Jailbreak UI (Kavo Style) - Versi Semi Otomatis RemoteEvent // -- Pastikan kamu punya Kavo UI library di dalam game kamu
 
--- UI Setup
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.Name = "AutoRobUI"
+local Kavo = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/Ui-Library/main/Kavo-UI-Library.lua"))() local Window = Kavo.CreateLib("Auto Rob - Jailbreak", "DarkTheme")
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 220, 0, 340)
-Frame.Position = UDim2.new(0.05, 0, 0.1, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Frame.BorderSizePixel = 0
-Frame.ClipsDescendants = true
+local AutoRobEnabled = false local RobTargets = { Bank = true, Jewelry = true, Museum = true, CargoTrain = true, GasStation = true, DonutShop = true, OilFactory = true }
 
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 12)
+local AutoRobTab = Window:NewTab("Auto Rob") local AutoRobSection = AutoRobTab:NewSection("Control") local StatusLabel = AutoRobTab:NewSection("Log"):NewLabel("Status: Menunggu...") local MoneyLabel = AutoRobTab:NewSection("Log"):NewLabel("Uang Total: $0") local TotalMoney = 0
 
-local Shadow = Instance.new("ImageLabel", Frame)
-Shadow.Image = "rbxassetid://1316045217"
-Shadow.ImageColor3 = Color3.new(0, 0, 0)
-Shadow.ImageTransparency = 0.6
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-Shadow.Size = UDim2.new(1, 30, 1, 30)
-Shadow.Position = UDim2.new(0, -15, 0, -15)
-Shadow.BackgroundTransparency = 1
-Shadow.ZIndex = -1
+-- Tombol Start / Stop AutoRobSection:NewButton("Start Auto Rob", "Mulai merampok otomatis", function() AutoRobEnabled = true AutoRob() end)
 
-local Title = Instance.new("TextLabel", Frame)
-Title.Text = "Auto Rob - Jailbreak"
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.BackgroundTransparency = 1
-Title.Font = Enum.Font.GothamBold
-Title.TextScaled = true
+AutoRobSection:NewButton("Stop Auto Rob", "Berhenti auto rob", function() AutoRobEnabled = false end)
 
-local ToggleButton = Instance.new("TextButton", Frame)
-ToggleButton.Text = "Start Auto Rob"
-ToggleButton.Size = UDim2.new(1, -20, 0, 30)
-ToggleButton.Position = UDim2.new(0, 10, 0, 40)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-ToggleButton.Font = Enum.Font.Gotham
-ToggleButton.TextScaled = true
+-- Checklist lokasi aktif for name, _ in pairs(RobTargets) do AutoRobSection:NewToggle(name, "Aktifkan/Nonaktifkan "..name, function(state) RobTargets[name] = state end) end
 
-local DropDown = Instance.new("TextButton", Frame)
-DropDown.Text = "Prioritas: Museum"
-DropDown.Size = UDim2.new(1, -20, 0, 30)
-DropDown.Position = UDim2.new(0, 10, 0, 80)
-DropDown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-DropDown.TextColor3 = Color3.new(1, 1, 1)
-DropDown.Font = Enum.Font.Gotham
-DropDown.TextScaled = true
+-- Minimize Box local function CreateMinimizedUI() local ScreenGui = Instance.new("ScreenGui", game.CoreGui) local Frame = Instance.new("Frame", ScreenGui) Frame.Size = UDim2.new(0, 120, 0, 40) Frame.Position = UDim2.new(0.5, -60, 0, 0) Frame.BackgroundColor3 = Color3.fromRGB(30,30,30) Frame.BorderSizePixel = 0 Frame.AnchorPoint = Vector2.new(0.5, 0) Frame.Name = "MinimizedAutoRob" Frame.Active = true Frame.Draggable = true
 
-local function styleButton(btn)
-	local corner = Instance.new("UICorner", btn)
-	corner.CornerRadius = UDim.new(0, 8)
-end
-styleButton(ToggleButton)
-styleButton(DropDown)
-
--- Prioritas & Checklist
-local priorities = {"Museum", "Jewelry", "Bank", "CargoTrain"}
-local currentPriority = 1
-
-DropDown.MouseButton1Click:Connect(function()
-	currentPriority = currentPriority + 1
-	if currentPriority > #priorities then currentPriority = 1 end
-	DropDown.Text = "Prioritas: " .. priorities[currentPriority]
+local TextButton = Instance.new("TextButton", Frame)
+TextButton.Size = UDim2.new(1, 0, 1, 0)
+TextButton.Text = "Open Auto Rob"
+TextButton.BackgroundTransparency = 1
+TextButton.TextColor3 = Color3.new(1,1,1)
+TextButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    Kavo:ToggleUI()
 end)
 
-local locationToggles = {
-	Museum = true,
-	Jewelry = true,
-	Bank = true,
-	CargoTrain = true
-}
-
-local yOffset = 120
-for _, name in ipairs(priorities) do
-	local btn = Instance.new("TextButton", Frame)
-	btn.Size = UDim2.new(1, -20, 0, 25)
-	btn.Position = UDim2.new(0, 10, 0, yOffset)
-	yOffset += 30
-	btn.Text = "✔️ " .. name
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	btn.TextColor3 = Color3.new(1,1,1)
-	btn.Font = Enum.Font.Gotham
-	btn.TextScaled = true
-	styleButton(btn)
-
-	btn.MouseButton1Click:Connect(function()
-		locationToggles[name] = not locationToggles[name]
-		btn.Text = (locationToggles[name] and "✔️ " or "❌ ") .. name
-	end)
 end
 
--- Log status
-local StatusLog = Instance.new("TextLabel", Frame)
-StatusLog.Size = UDim2.new(1, -20, 0, 25)
-StatusLog.Position = UDim2.new(0, 10, 1, -30)
-StatusLog.BackgroundTransparency = 1
-StatusLog.TextColor3 = Color3.new(1, 1, 1)
-StatusLog.Font = Enum.Font.Gotham
-StatusLog.TextScaled = true
-StatusLog.Text = "Status: Menunggu..."
+-- Tombol Minimize dan Close AutoRobSection:NewButton("Minimize UI", "Sembunyikan ke atas", function() Kavo:ToggleUI() CreateMinimizedUI() end)
 
-function updateStatus(msg)
-	StatusLog.Text = "Status: " .. msg
+AutoRobSection:NewButton("Close UI", "Tutup UI sepenuhnya", function() game.CoreGui:FindFirstChild("KavoUI"):Destroy() end)
+
+-- Fungsi utama Auto Rob function AutoRob() spawn(function() while AutoRobEnabled do local availableRob = CheckRobbery() if availableRob and RobTargets[availableRob] then StatusLabel:UpdateLabel("Merampok: " .. availableRob) TeleportTo(availableRob) TriggerRobbery(availableRob) wait(10) TotalMoney += math.random(3000,7000) MoneyLabel:UpdateLabel("Uang Total: $" .. TotalMoney) else StatusLabel:UpdateLabel("Tidak ada lokasi rob aktif...") end wait(3) end end) end
+
+-- Deteksi Lokasi Rob Aktif (sementara dummy transparansi) function CheckRobbery() local function isOpen(obj) return obj and obj:IsA("BasePart") and obj.Transparency > 0.5 end
+
+if isOpen(workspace:FindFirstChild("Banks") and workspace.Banks:FindFirstChild("Door")) then
+    return "Bank"
+elseif isOpen(workspace:FindFirstChild("Jewelrys") and workspace.Jewelrys:FindFirstChild("Door")) then
+    return "Jewelry"
+elseif isOpen(workspace:FindFirstChild("GasStation") and workspace.GasStation:FindFirstChild("Door")) then
+    return "GasStation"
+elseif isOpen(workspace:FindFirstChild("DonutShop") and workspace.DonutShop:FindFirstChild("Door")) then
+    return "DonutShop"
+elseif isOpen(workspace:FindFirstChild("OilFactory") and workspace.OilFactory:FindFirstChild("Door")) then
+    return "OilFactory"
+end
+return nil
+
 end
 
--- Notifikasi
-function showNotification(text)
-	local notif = Instance.new("TextLabel", ScreenGui)
-	notif.Size = UDim2.new(0, 250, 0, 40)
-	notif.Position = UDim2.new(1, -270, 1, -60)
-	notif.BackgroundColor3 = Color3.fromRGB(40, 180, 80)
-	notif.Text = text
-	notif.TextColor3 = Color3.new(1, 1, 1)
-	notif.Font = Enum.Font.GothamBold
-	notif.TextScaled = true
-	notif.ZIndex = 999
-	notif.AnchorPoint = Vector2.new(1,1)
-	notif.ClipsDescendants = true
+-- Teleport ke lokasi function TeleportTo(tempat) local char = game.Players.LocalPlayer.Character if not char then return end local pos = { Bank = Vector3.new(10, 10, 10), Jewelry = Vector3.new(20, 10, 10), Museum = Vector3.new(30, 10, 10), CargoTrain = Vector3.new(40, 10, 10), GasStation = Vector3.new(50, 10, 10), DonutShop = Vector3.new(60, 10, 10), OilFactory = Vector3.new(70, 10, 10), } if pos[tempat] then char:MoveTo(pos[tempat]) end end
 
-	TweenService:Create(notif, TweenInfo.new(0.4), {Position = UDim2.new(1, -270, 1, -100)}):Play()
-	wait(2.5)
-	TweenService:Create(notif, TweenInfo.new(0.3), {TextTransparency = 1, BackgroundTransparency = 1}):Play()
-	wait(0.5)
-	notif:Destroy()
-end
+-- Trigger rob pakai RemoteEvent (semi otomatis) function TriggerRobbery(tempat) local remote = game.ReplicatedStorage:FindFirstChild("RobberyRemote") if remote and remote:IsA("RemoteEvent") then remote:FireServer(tempat) end end
 
--- Fungsi Robbery
-function teleportTo(position)
-	Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-	if Character:FindFirstChild("HumanoidRootPart") then
-		Character.HumanoidRootPart.CFrame = CFrame.new(position + Vector3.new(0, 5, 0))
-	end
-end
+-- Tab Fitur Player local PlayerTab = Window:NewTab("Player") local PlayerSection = PlayerTab:NewSection("Fitur Player")
 
-function isRobberyAvailable(name)
-	if name == "Museum" then
-		local doors = workspace:FindFirstChild("Museum") and workspace.Museum:FindFirstChild("Doors")
-		return doors and doors:FindFirstChild("Door1") and doors.Door1.Transparency < 1
-	elseif name == "Jewelry" then
-		return workspace:FindFirstChild("JewelrysStore") and workspace.JewelrysStore:FindFirstChild("Glass")
-	elseif name == "Bank" then
-		return workspace:FindFirstChild("Bank") and workspace.Bank:FindFirstChild("Doors")
-	elseif name == "CargoTrain" then
-		return workspace:FindFirstChild("Train") ~= nil
-	end
-end
+PlayerSection:NewSlider("Speed", "Ubah kecepatan jalan", 300, 16, function(s) game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s end)
 
-function isPoliceNearby(range)
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Team.Name == "Police" then
-			local char = player.Character
-			if char and char:FindFirstChild("HumanoidRootPart") then
-				local dist = (char.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-				if dist <= range then return true end
-			end
-		end
-	end
-	return false
-end
+PlayerSection:NewSlider("Jump Power", "Ubah tinggi lompatan", 300, 50, function(j) game.Players.LocalPlayer.Character.Humanoid.JumpPower = j end)
 
-function autoEscape()
-	local safePos = Vector3.new(1684, 50, -1763)
-	teleportTo(safePos)
-end
+PlayerSection:NewButton("Speed Hack (300)", "Langsung aktifkan speed 300", function() game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 300 end)
 
-function autoBreakJewelryGlass()
-	local glassParts = workspace.JewelrysStore and workspace.JewelrysStore:FindFirstChild("Glass")
-	if glassParts then
-		for _, glass in ipairs(glassParts:GetChildren()) do
-			if glass:IsA("BasePart") and (glass.Position - Character.HumanoidRootPart.Position).Magnitude < 20 then
-				firetouchinterest(Character.HumanoidRootPart, glass, 0)
-				task.wait(0.1)
-				firetouchinterest(Character.HumanoidRootPart, glass, 1)
-			end
-		end
-	end
-end
+PlayerSection:NewButton("High Jump (300)", "Langsung aktifkan lompat tinggi", function() game.Players.LocalPlayer.Character.Humanoid.JumpPower = 300 end)
 
-function autoLootMuseum()
-	local museum = workspace:FindFirstChild("Museum")
-	if museum then
-		for _, item in ipairs(museum:GetDescendants()) do
-			if item:IsA("BasePart") and item.Name == "Grab" then
-				firetouchinterest(Character.HumanoidRootPart, item, 0)
-				task.wait(0.1)
-				firetouchinterest(Character.HumanoidRootPart, item, 1)
-			end
-		end
-	end
-end
+local Noclip = false PlayerSection:NewToggle("No Clip", "Lewat tembok", function(v) Noclip = v if Noclip then Stepped = game:GetService("RunService").Stepped:Connect(function() for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") and v.CanCollide == true then v.CanCollide = false end end end) else if Stepped then Stepped:Disconnect() end for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = true end end end end)
 
-function rob(target)
-	if not locationToggles[target] then return end
-	updateStatus("Merampok " .. target)
+PlayerSection:NewButton("Anti Arrest", "Cegah ditangkap polisi", function() local plr = game.Players.LocalPlayer local arrestModule = plr.Character:FindFirstChild("handcuffed") if arrestModule then arrestModule:Destroy() end plr.Character.ChildAdded:Connect(function(child) if child.Name == "handcuffed" then child:Destroy() end end) end)
 
-	if target == "Museum" then
-		teleportTo(Vector3.new(1086, 117, 1246)); wait(1)
-		autoLootMuseum()
-	elseif target == "Jewelry" then
-		teleportTo(Vector3.new(135, 17, 1320)); wait(1)
-		autoBreakJewelryGlass()
-	elseif target == "Bank" then
-		teleportTo(Vector3.new(29, 17, 875)); wait(2)
-	elseif target == "CargoTrain" then
-		local train = workspace:FindFirstChild("Train")
-		if train then
-			for _, v in ipairs(train:GetDescendants()) do
-				if v:IsA("BasePart") and v.Name == "Door" then
-					teleportTo(v.Position)
-					break
-				end
-			end
-		end
-	end
+PlayerSection:NewButton("Reset Speed/Jump", "Kembalikan ke default", function() local h = game.Players.LocalPlayer.Character.Humanoid h.WalkSpeed = 16 h.JumpPower = 50 end)
 
-	wait(2)
-	autoEscape()
-	local gain = math.random(4500, 7500)
-	TotalMoney += gain
-	showNotification("Sukses merampok " .. target)
-	updateStatus("Berhasil: " .. target .. " | +" .. gain .. "$ | Total: " .. TotalMoney .. "$")
-end
-
-function startAutoRob()
-	task.spawn(function()
-		while running do
-			local target = priorities[currentPriority]
-			if isRobberyAvailable(target) and not isPoliceNearby(100) and locationToggles[target] then
-				rob(target)
-			end
-			wait(5)
-		end
-	end)
-end
-
-ToggleButton.MouseButton1Click:Connect(function()
-	running = not running
-	ToggleButton.Text = running and "Stop Auto Rob" or "Start Auto Rob"
-	if running then
-		startAutoRob()
-	end
-end)
